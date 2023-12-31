@@ -1,4 +1,4 @@
-# mainLocalWhisper.py
+# main_LocalWhisper.py
 import os
 import yaml
 import whisper
