@@ -41,6 +41,7 @@ Run the tool using `python main_localWhisper.py` with optional arguments:
 - `-f`: Provide the path to an existing audio file for transcription and translation - if file is in the same directory just name the file
 
 Example: `python main_localWhisper.py -d 10`
+
 Example 2: `python main_localWhisper.py -f audioFileName.wav`
 
 ## Troubleshooting
