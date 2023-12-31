@@ -1,0 +1,18 @@
+# Audio Files
+*.wav
+
+# Incomplete Test
+23_recordAndTranscribe_test.py
+apiWhisperMethod_test2.py
+
+#Private Config file w/ api key
+config.yaml
+
+# still Testing
+test_record.py
+test_recording.wav
+
+# Virtual env folder
+/whisp
+
+
