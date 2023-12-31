@@ -1,7 +1,17 @@
 # Live Translation Tool with OpenAI Whisper
 
 ## Description
-This live translation tool leverages OpenAI's Whisper model for real-time audio transcription and GPT-4 for accurate language translation. It supports seamless English-Spanish translation suitable for diverse applications.
+This live translation tool utilizes OpenAI's Whisper model for real-time audio transcription and leverages the OpenAI API for accurate language translation. Currently, it supports English-Spanish translation and is particularly effective for diverse real-world applications. The tool operates with the Whisper model running locally for transcription, while translation tasks are handled through the OpenAI API.
+
+### Current Version
+- **Local Transcription**: Uses the Whisper model locally for real-time audio transcription.
+- **API-based Translation**: Employs the OpenAI API to translate the transcribed text.
+
+### Roadmap
+- **Whisper API Integration**: Future updates will include the option to use the Whisper API for transcription, enhancing the tool's efficiency and accuracy.
+- **Conversation Collection Thread**: Plans to implement a conversation collection thread are in place, aiming to optimize memory allocation and handle longer conversations effectively.
+
+The goal is to continually enhance the tool's capabilities, making it more versatile and user-friendly in various translation scenarios.
 
 ## Installation
 ### Prerequisites
