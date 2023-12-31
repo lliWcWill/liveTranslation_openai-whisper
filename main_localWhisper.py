@@ -2,10 +2,8 @@
 import os
 import yaml
 import whisper
-import tempfile
 import requests
 import json
-import time
 import sys
 import wavio
 from datetime import datetime
