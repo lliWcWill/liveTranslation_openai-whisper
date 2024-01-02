@@ -80,6 +80,12 @@ args = parser.parse_args()
 
 # Load configuration and initialize OpenAI client
 def load_config():
+    """
+    Loads the configuration from the "config.yaml" file and returns it.
+
+    Returns:
+        The configuration loaded from the "config.yaml" file.
+    """
     with open("config.yaml", "r") as file:
         return yaml.safe_load(file)
 
@@ -92,6 +98,18 @@ import subprocess
 
 
 def play_audio(audio_content):
+    """
+    Play the given audio content using ffplay.
+
+    Args:
+        audio_content (bytes): The audio content to be played.
+
+    Raises:
+        Exception: If there is an error playing the audio with ffplay.
+
+    Returns:
+        None
+    """
     try:
         # Start a subprocess that runs ffplay
         ffplay_proc = subprocess.Popen(
@@ -113,6 +131,16 @@ def play_audio(audio_content):
 
 
 def voice_stream(input_text, chosen_voice):
+    """
+    Generate the voice stream for the given input text and chosen voice.
+
+    Parameters:
+        input_text (str): The text to be converted into speech.
+        chosen_voice (str): The voice to be used for the speech conversion.
+
+    Returns:
+        None
+    """
     try:
         response = client.audio.speech.create(
             model="tts-1", voice=chosen_voice, input=input_text
@@ -125,6 +153,17 @@ def voice_stream(input_text, chosen_voice):
 
 
 def print_json_formatted(data, indent=4, width_percentage=0.65):
+    """
+    Prints the given data dictionary in JSON format, with optional formatting options.
+
+    Args:
+        data (dict): The dictionary to be printed in JSON format.
+        indent (int, optional): The number of spaces to use for indentation. Defaults to 4.
+        width_percentage (float, optional): The percentage of the terminal width to use as the maximum width for wrapping values. Defaults to 0.65.
+
+    Returns:
+        None
+    """
     # Get the width of the terminal
     terminal_width = shutil.get_terminal_size((80, 20)).columns
 
@@ -161,6 +200,16 @@ def print_json_formatted(data, indent=4, width_percentage=0.65):
 
 # Record Audio Function
 def record_audio(duration=20):
+    """
+    Records audio for a specified duration and saves it as a WAV file.
+
+    Parameters:
+        duration (int, optional): The duration of the audio recording in seconds.
+            Defaults to 20.
+
+    Returns:
+        str: The filename of the saved WAV file.
+    """
     filename = f"audio_record_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
     print(Fore.GREEN + f"\nRecording for {duration} seconds...\n" + Style.RESET_ALL)
     audio_data = sd.rec(
@@ -174,6 +223,15 @@ def record_audio(duration=20):
 
 # Transcribe Audio Function with Corrected Handling
 def transcribe_audio(audio_file_path):
+    """
+    Transcribes an audio file using the specified audio file path.
+
+    Parameters:
+        audio_file_path (str): The path to the audio file.
+
+    Returns:
+        str: The transcription text if successful, None otherwise.
+    """
     try:
         with open(audio_file_path, "rb") as audio_file:
             response = client.audio.transcriptions.create(
@@ -195,6 +253,16 @@ def transcribe_audio(audio_file_path):
 
 
 def translate_text(text, custom_content=None):
+    """
+    Translates the given text using the OpenAI GPT-4 language model.
+
+    Args:
+        text (str): The text to be translated.
+        custom_content (str, optional): Custom content to be used in the translation. Defaults to None.
+
+    Returns:
+        str: The translated text, or None if the translation failed.
+    """
     try:
         # Determine the content based on the custom_content and text arguments
         if custom_content is not None:
@@ -245,6 +313,13 @@ def translate_text(text, custom_content=None):
 
 
 def listen_for_commands():
+    """
+    Listens for voice commands using the microphone and returns the recognized command as a lowercase string.
+
+    Returns:
+        str: The recognized voice command as a lowercase string.
+            If the command cannot be recognized, None is returned.
+    """
     r = sr.Recognizer()
     with sr.Microphone() as source:
         print("Listening for voice commands...")
@@ -276,6 +351,19 @@ audio_frames = []
 
 
 def record_audio_continuous():
+    """
+    Record audio continuously until a stop command is given.
+
+    This function uses the `sd.InputStream` class from the `sounddevice` library
+    to capture audio frames. It continuously records audio until the global
+    variable `is_recording` is set to False.
+
+    Parameters:
+    None
+
+    Returns:
+    bytes: The recorded audio frames joined together into a single byte string.
+    """
     global is_recording
     print(Fore.GREEN + "Say 'stop' to end recording..." + Style.RESET_ALL)
     with sd.InputStream(channels=1, samplerate=RATE, callback=record_callback):
@@ -285,6 +373,21 @@ def record_audio_continuous():
 
 
 def record_callback(indata, frames, time, status):
+    """
+    Record a callback function that appends the input audio frames to `audio_frames`
+    if `is_recording` is True. Print the input `status` to the standard error stream
+    if it is not None.
+
+    Parameters:
+    - `indata`: The input audio frames.
+    - `frames`: The number of frames.
+    - `time`: The time.
+    - `status`: The status.
+
+    Returns:
+    This function does not return anything.
+    """
+
     global is_recording, audio_frames
     if is_recording:
         audio_frames.append(indata.copy())
