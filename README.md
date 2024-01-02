@@ -1,59 +1,40 @@
-# Live Translation Tool with OpenAI Whisper
+Real-Time Translation Tool with GPT Voice
+Description
+This tool is designed for real-time audio translation leveraging the power of OpenAI's Whisper and GPT models. It provides a seamless experience in transcribing and translating spoken words, with the added capability of GPT voice output.
 
-## Description
-This live translation tool utilizes OpenAI's Whisper model for real-time audio transcription and leverages the OpenAI API for accurate language translation. Currently, it supports English-Spanish translation and is particularly effective for diverse real-world applications. The tool operates with the Whisper model running locally for transcription, while translation tasks are handled through the OpenAI API.
+Features
+Real-time audio recording and transcription using OpenAI's Whisper model.
+Accurate translation between English and Spanish through GPT-3.
+Text-to-Speech (TTS) output for translations, activated with the -v argument.
+Requirements
+To use this tool, ensure the following dependencies are installed:
 
-### Current Version
-- **Local Transcription**: Uses the Whisper model locally for real-time audio transcription.
-- **API-based Translation**: Employs the OpenAI API to translate the transcribed text.
+Python 3.x
+sounddevice
+openai
+wavio
+requests
+speech_recognition
+colorama
+pynput
+textwrap
+Installation
+Clone the repository or download the script.
+Install the necessary Python dependencies.
+Set up your OpenAI API key in a config.yaml file for authentication.
+Usage
+Run the script using Python. You can customize your experience using these command-line arguments:
 
-### Roadmap
-- **Whisper API Integration**: Future updates will include the option to use the Whisper API for transcription, enhancing the tool's efficiency and accuracy.
-- **Conversation Collection Thread**: Plans to implement a conversation collection thread are in place, aiming to optimize memory allocation and handle longer conversations effectively.
+-d, --duration: Specify the recording duration in seconds (optional).
+-f, --file: Use an existing audio file for transcription and translation (optional).
+-c, --content: Custom content for the API call to Whisper (optional).
+-v, --voice: Enable TTS voice for speaking the translation (optional).
+Basic Operation
+Press the space bar to start and stop audio recording.
+The script transcribes the recorded audio and then translates it.
+If -v is used, the translated text is spoken using a TTS voice.
+Text-to-Speech Output
+The -v argument enables the TTS feature, where the translation is read aloud. This feature supports multiple voices, offering a diverse and engaging user experience.
 
-The goal is to continually enhance the tool's capabilities, making it more versatile and user-friendly in various translation scenarios.
-
-## Installation
-### Prerequisites
-- Python 3.x
-- Whisper
-- Pydub
-- SoundDevice
-- Requests
-
-### Steps
-1. Clone the repository: `git clone https://github.com/yourusername/liveTranslation_openai-whisper.git`
-2. Navigate to the cloned directory: `cd liveTranslation_openai-whisper`
-3. Install required libraries: `pip install -r requirements.txt`
-
-## Configuration
-Set up your OpenAI API key in `config.yaml`:
-1. Rename `config.yaml.default` to `config.yaml`
-2. Enter your OpenAI API key in the `config.yaml` file:
-```yaml
-openai:
-  api_key: "Your-OpenAI-API-Key"
-```
-
-## Usage
-Run the tool using `python main_localWhisper.py` with optional arguments:
-- `-d`: Specify the recording duration in seconds (options: 4, 8, 10, 20, 30)
-- `-f`: Provide the path to an existing audio file for transcription and translation - if file is in the same directory just name the file
-
-Example: `python main_localWhisper.py -d 10`
-Example 2: `python main_localWhisper.py -f audioFileName.wav`
-
-## Troubleshooting
-If you encounter issues, check your microphone settings and ensure the OpenAI API key is valid.
-
-## Contributing
-Contributions are welcome. Fork the repository and submit a pull request with your changes.
-
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contact
-For more information, contact me at [willTheNightFox@gmail.com](mailto:willTheNightFox@gmail.com).
-
-## Acknowledgments
-Special thanks to the OpenAI team for the Whisper and GPT-4 models.
+License
+This project is released under the MIT license.
