@@ -54,8 +54,9 @@ parser.add_argument(
     help="Path to an existing audio file to transcribe and translate",
 )
 # Define a sentinel value for the default content
-DEFAULT_CONTENT = "You are a Spanish and English translation and interpretator assistant. Your purpose is to translate to help bridge the gap for english and spanish speakers. If you detect Spanish you translate to english and if you detect english you translate to spanish. If you dectect both spanish and english and it is Clearly distinguishable, please continue to translate to the opposite language. example of detecting both languages) Translation: I want to know why I have to go to the store to get a deal rather than shopping online. Quieres mi corazon para mi vida porque no me importa."
-SPECIAL_CONTENT = "It is a beautiful highly productive September sunny day and you are highly motivated, and you a World Class Expert AI multilingual translator interpreter. You're capable of understanding, any in all languages, and able to fluently and accurately translate them back to English. Your goal and underlying purpose is to bridge all gaps in communication and effectively translate back to English no matter what. You have done this you are capable of doing this and you will do this. Important: Translate any text to ENGLISH"
+SPECIAL_CONTENT = "You are a Spanish and English translation and interpretator assistant. Your purpose is to translate to help bridge the gap for english and spanish speakers. If you detect Spanish you translate to english and if you detect english you translate to spanish. If you dectect both spanish and english and it is Clearly distinguishable, please continue to translate to the opposite language. example of detecting both languages) Translation: I want to know why I have to go to the store to get a deal rather than shopping online. Quieres mi corazon para mi vida porque no me importa."
+DEFAULT_CONTENT = "It is a beautiful highly productive September sunny day and you are highly motivated, and you a World Class Expert AI multilingual translator interpreter. You're capable of understanding, any in all languages, and able to fluently and accurately translate them back to English. Your goal and underlying purpose is to bridge all gaps in communication and effectively translate back to English no matter what. You have done this you are capable of doing this and you will do this. Important: Translate any text to ENGLISH"
+
 
 # Modify the argparse setup
 parser.add_argument(
@@ -65,8 +66,25 @@ parser.add_argument(
     nargs="?",
     const=SPECIAL_CONTENT,
     default=DEFAULT_CONTENT,
-    help="Custom content for the API call to Whisper",
+    help=(
+        f"""
+        "Custom content for the API call to Whisper.\n"
+        {Fore.LIGHTMAGENTA_EX}• Without -c arg: default content will be used.
+       {Fore.YELLOW}• With -c arg: special content will be used.
+       {Fore.GREEN}• With -c arg followed by text: the provided text will be used.
+       Example: -c 'you a World Class Expert AI multilingual translator interpreter.
+       """
+        + Fore.LIGHTMAGENTA_EX
+        + "DEFAULT_CONTENT: 'You are a Spanish and English translation and interpretator assistant. Your purpose is to translate to help bridge the gap for English and Spanish speakers. If you detect Spanish, you translate to English and if you detect English, you translate to Spanish. If you detect both Spanish and English and it is clearly distinguishable, please continue to translate to the opposite language. Example of detecting both languages) Translation: I want to know why I have to go to the store to get a deal rather than shopping online. Quieres mi corazon para mi vida porque no me importa.'\n"
+        + Fore.YELLOW
+        + "SPECIAL_CONTENT: 'It is a beautiful highly productive September sunny day and you are highly motivated, and you a World Class Expert AI multilingual translator interpreter. You're capable of understanding any and all languages, and able to fluently and accurately translate them back to English. Your goal and underlying purpose is to bridge all gaps in communication and effectively translate back to English no matter what. You have done this, you are capable of doing this, and you will do this. Important: Translate any text to ENGLISH.'"
+    ),
 )
+# Add a new argument for continuous run
+parser.add_argument(
+    "-t", "--continuous", action="store_true", help="Enable continuous run mode."
+)
+
 # Define a sentinel value for the default voice
 voice_choices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
 parser.add_argument(
@@ -95,6 +113,17 @@ openai_api_key = config["openai"]["api_key"]
 client = OpenAI(api_key=openai_api_key)  # Initialize OpenAI client globally
 
 import subprocess
+
+
+def create_session_folder():
+    session_folder = f"Collections/session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    os.makedirs(session_folder, exist_ok=True)
+    return session_folder
+
+
+def save_transcription(folder, original, translated):
+    with open(os.path.join(folder, "transcriptions.txt"), "a") as file:
+        file.write(f"Original: {original}\nTranslated: {translated}\n\n")
 
 
 def play_audio(audio_content):
@@ -239,7 +268,7 @@ def transcribe_audio(audio_file_path):
                 file=audio_file,
             )
 
-            # f"Full API Response: {response}\n"
+            logger.info(f"Full API Response: {response}\n")
 
             # Check for transcription text
             if hasattr(response, "text") and response.text:
@@ -395,10 +424,30 @@ def record_callback(indata, frames, time, status):
         print(status, file=sys.stderr)
 
 
-def main():
-    print(
-        Fore.GREEN + "\nWelcome to the real-time translation tool.\n" + Style.RESET_ALL
-    )
+def continuous_run_mode():
+    print(Fore.GREEN + "\nContinuous run mode activated.\n" + Style.RESET_ALL)
+    session_folder = create_session_folder()
+
+    try:
+        while True:
+            audio_file_path = record_audio(30)  # Record for 30 seconds
+            transcribed_text = transcribe_audio(audio_file_path)
+
+            if transcribed_text:
+                translated_text = translate_text(transcribed_text)
+                save_transcription(session_folder, transcribed_text, translated_text)
+            if transcribed_text:
+                translated_text = translate_text(transcribed_text)
+                save_transcription(session_folder, transcribed_text, translated_text)
+                if args.voice:
+                    voice_stream(translated_text, args.voice)
+            os.remove(audio_file_path)  # Delete audio file
+
+    except KeyboardInterrupt:
+        print(Fore.RED + "\nExiting continuous run mode." + Style.RESET_ALL)
+
+
+def single_run_mode():
     audio_files = []  # Keep track of recorded audio files for cleanup
 
     while True:
@@ -415,7 +464,6 @@ def main():
                 audio_files.append(audio_file_path)
                 transcribed_text = transcribe_audio(audio_file_path)
 
-                # Common translation and output logic
                 if transcribed_text:
                     translated_text = translate_text(transcribed_text)
                     json_output = {
@@ -426,14 +474,15 @@ def main():
 
                     if args.voice:
                         voice_stream(translated_text, args.voice)
-                        print(
-                            Fore.GREEN
-                            + "\nDo you want to translate more? (Press space to continue)"
-                            + Style.RESET_ALL
-                        )
-                        user_input = readchar.readkey()
-                        if user_input != " ":
-                            break
+
+                print(
+                    Fore.GREEN
+                    + "\nDo you want to translate more? (Press space to continue)"
+                    + Style.RESET_ALL
+                )
+                continue_input = readchar.readkey()
+                if continue_input != " ":
+                    break
 
             elif user_input.lower() == "exit":
                 print(Fore.RED + "\nExiting the program." + Style.RESET_ALL)
@@ -479,6 +528,17 @@ def main():
             )
     except Exception as e:
         print(Fore.RED + f"An error occurred: {e}" + Style.RESET_ALL)
+
+
+def main():
+    print(
+        Fore.GREEN + "\nWelcome to the real-time translation tool.\n" + Style.RESET_ALL
+    )
+
+    if args.continuous:
+        continuous_run_mode()
+    else:
+        single_run_mode()
 
 
 if __name__ == "__main__":
