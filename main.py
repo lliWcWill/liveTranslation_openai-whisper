@@ -376,25 +376,34 @@ audio_frames = []
 
 
 def record_audio_continuous():
-    """
-    Record audio continuously until a stop command is given.
+    global is_recording, audio_frames
+    is_recording = True
+    audio_frames = []
 
-    This function uses the `sd.InputStream` class from the `sounddevice` library
-    to capture audio frames. It continuously records audio until the global
-    variable `is_recording` is set to False.
+    def record_callback(indata, frames, time, status):
+        if is_recording:
+            audio_frames.append(indata.copy())
+        if status:
+            print(status, file=sys.stderr)
 
-    Parameters:
-    None
-
-    Returns:
-    bytes: The recorded audio frames joined together into a single byte string.
-    """
-    global is_recording
-    print(Fore.GREEN + "Say 'stop' to end recording..." + Style.RESET_ALL)
-    with sd.InputStream(channels=1, samplerate=RATE, callback=record_callback):
+    print(Fore.GREEN + "Recording... Press 's' to stop." + Style.RESET_ALL)
+    with sd.InputStream(channels=CHANNELS, samplerate=RATE, callback=record_callback):
         while is_recording:
+            if keyboard.is_pressed('s'):  # Stop recording if 's' key is pressed
+                break
             time.sleep(0.1)
-    return b"".join(audio_frames)
+
+    filename = f"audio_record_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+    wavio.write(filename, np.concatenate(audio_frames), RATE, sampwidth=SAMPLE_WIDTH)
+
+    # Ask user whether to save or discard the recording
+    user_choice = input("Do you want to save the current audio file and continue? (yes/no): ")
+    if user_choice.lower() == 'yes':
+        return filename  # Continue with the saved audio file
+    else:
+        os.remove(filename)  # Delete the audio file and exit
+        print("Audio file discarded.")
+        return None
 
 
 def record_callback(indata, frames, time, status):
