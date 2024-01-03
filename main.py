@@ -1,23 +1,24 @@
+import argparse
+import json
 import logging
 import os
-import yaml
-import requests
-import json
+import shutil
+import subprocess
 import sys
 import textwrap
-import wavio
-import readchar
-import speech_recognition as sr
-from pynput import keyboard
-import sounddevice as sd
-from openai import OpenAI
-from datetime import datetime
-import argparse
-import warnings
-import subprocess
 import time
+import warnings
+from datetime import datetime
+
+import readchar
+import requests
+import sounddevice as sd
+import speech_recognition as sr
+import wavio
+import yaml
 from colorama import Fore, Style, init
-import shutil
+from openai import OpenAI
+from pynput import keyboard
 
 # Initialize colorama and logging
 init(autoreset=True)
@@ -44,7 +45,7 @@ parser.add_argument(
     "-d",
     "--duration",
     type=int,
-    choices=[4, 8, 10, 20, 30],
+    choices=[4, 8, 10, 20, 30, 100, 250],
     help="Duration of the recording in seconds",
 )
 parser.add_argument(
@@ -227,17 +228,11 @@ def print_json_formatted(data, indent=4, width_percentage=0.65):
         print(color + value_str + Style.RESET_ALL)
 
 
-# Record Audio Function
-def record_audio(duration=20):
+# Record Audio Function with Duration Parameter
+def record_audio(duration=20):  # Default duration set to 20 seconds
     """
     Records audio for a specified duration and saves it as a WAV file.
-
-    Parameters:
-        duration (int, optional): The duration of the audio recording in seconds.
-            Defaults to 20.
-
-    Returns:
-        str: The filename of the saved WAV file.
+    ...
     """
     filename = f"audio_record_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
     print(Fore.GREEN + f"\nRecording for {duration} seconds...\n" + Style.RESET_ALL)
@@ -266,6 +261,7 @@ def transcribe_audio(audio_file_path):
             response = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file,
+                prompt="Please focus solely on transcribing the content of this audio. Do not translate. Maintain the original language and context as accurately as possible.",
             )
 
             logger.info(f"Full API Response: {response}\n")
@@ -430,7 +426,8 @@ def continuous_run_mode():
 
     try:
         while True:
-            audio_file_path = record_audio(30)  # Record for 30 seconds
+            # Use args.duration for recording duration
+            audio_file_path = record_audio(args.duration)
             transcribed_text = transcribe_audio(audio_file_path)
 
             if transcribed_text:
