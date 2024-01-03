@@ -117,12 +117,28 @@ import subprocess
 
 
 def create_session_folder():
+    """
+    Create a session folder with a timestamp as the folder name.
+    
+    Returns:
+        str: The path of the created session folder.
+    """
     session_folder = f"Collections/session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     os.makedirs(session_folder, exist_ok=True)
     return session_folder
 
 
 def save_transcription(folder, original, translated):
+    """
+    Save the transcription of an original and translated text into a file.
+
+    :param folder: The folder where the file will be saved.
+    :type folder: str
+    :param original: The original text.
+    :type original: str
+    :param translated: The translated text.
+    :type translated: str
+    """
     with open(os.path.join(folder, "transcriptions.txt"), "a") as file:
         file.write(f"Original: {original}\nTranslated: {translated}\n\n")
 
@@ -376,6 +392,12 @@ audio_frames = []
 
 
 def record_audio_continuous():
+    """
+    Records audio continuously until the 's' key is pressed.
+    
+    Returns:
+        str: The filename of the saved audio file if the user chooses to save it, None otherwise.
+    """
     global is_recording, audio_frames
     is_recording = True
     audio_frames = []
