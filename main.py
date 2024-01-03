@@ -421,6 +421,19 @@ def record_callback(indata, frames, time, status):
 
 
 def continuous_run_mode():
+    """
+    Activates the continuous run mode.
+
+    This function continuously runs a loop that records audio, transcribes it, translates the transcribed text,
+    saves the transcription, and optionally streams the translated text using a voice stream. The loop runs until
+    interrupted by the user.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     print(Fore.GREEN + "\nContinuous run mode activated.\n" + Style.RESET_ALL)
     session_folder = create_session_folder()
 
@@ -445,6 +458,17 @@ def continuous_run_mode():
 
 
 def single_run_mode():
+    """
+    Executes the single run mode of the program.
+
+    This function allows the user to record audio, transcribe it, translate it, and optionally play it back using text-to-speech. The user can continue translating more audio or exit the program. If the user decides to exit, the function will prompt the user to delete all the audio files saved during the session. The function uses the readchar library to capture user input and the colorama library to format console output.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     audio_files = []  # Keep track of recorded audio files for cleanup
 
     while True:
@@ -528,6 +552,19 @@ def single_run_mode():
 
 
 def main():
+    """
+    Executes the main function of the program.
+
+    This function is responsible for printing a welcome message to the user and then either
+    calling the continuous_run_mode() or single_run_mode() functions depending on the value
+    of the 'args.continuous' variable.
+
+    Parameters:
+        None
+
+    Returns:
+        None
+    """
     print(
         Fore.GREEN + "\nWelcome to the real-time translation tool.\n" + Style.RESET_ALL
     )
