@@ -1,26 +1,15 @@
-# Live Translation Tool with OpenAI Whisper
+# OpenAI Whisper-Enhanced Live Translation Tool
 
 ## Description
-This live translation tool utilizes OpenAI's Whisper model for real-time audio transcription and leverages the OpenAI API for accurate language translation. Currently, it supports English-Spanish translation and is particularly effective for diverse real-world applications. The tool operates with the Whisper model running locally for transcription, while translation tasks are handled through the OpenAI API.
+The OpenAI Whisper-Enhanced Live Translation Tool now boasts full API integration for transcribing, translating, and speech synthesis, transforming global communication and language education. With the new -c argument, users enjoy expanded multilingual support and can experience translated content with voice output. Future updates may include an AI language teacher assistant, further enriching the immersive learning experience. This tool represents a leap forward in accessible language technology, fostering understanding across diverse linguistic barriers.
 
-### Current Version
-- **Local Transcription**: Uses the Whisper model locally for real-time audio transcription.
-- **API-based Translation**: Employs the OpenAI API to translate the transcribed text.
+### Latest Release Highlights
+- **Full API Integration**: Leverage the power of OpenAI's API for transcription, translation, and text-to-speech, ensuring an uninterrupted and cohesive experience.
+- **Expanded Multilingual Support**: Utilize the `-c` argument to select from an extensive list of supported languages, catering to diverse linguistic needs.
+- **Enhanced Text-to-Speech**: Bring translations to life with the `-v` voice option, offering an engaging auditory experience for users.
+- **Roadmap to AI Language Assistant**: Anticipate the evolution of the tool into an interactive AI language teacher assistant, expanding educational possibilities and user interaction.
 
-### Roadmap
-- **Whisper API Integration**: Future updates will include the option to use the Whisper API for transcription, enhancing the tool's efficiency and accuracy.
-- **Conversation Collection Thread**: Plans to implement a conversation collection thread are in place, aiming to optimize memory allocation and handle longer conversations effectively.
-
-The goal is to continually enhance the tool's capabilities, making it more versatile and user-friendly in various translation scenarios.
-
-## Installation
-### Prerequisites
-- Python 3.x
-- Whisper
-- Pydub
-- SoundDevice
-- Requests
-
+### Installation & Setup
 - It also requires the command-line tool ffmpeg to be installed on your system, which is available from most package managers:
 ```
 # on Ubuntu or Debian
@@ -53,14 +42,30 @@ openai:
   api_key: "Your-OpenAI-API-Key"
 ```
 
-## Usage
-Run the tool using `python main_localWhisper.py` with optional arguments:
-- `-d`: Specify the recording duration in seconds (options: 4, 8, 10, 20, 30)
-- `-f`: Provide the path to an existing audio file for transcription and translation - if file is in the same directory just name the file
+## Args
+Execute with `python main.py` and the following optional flags:
+- `-d <seconds>`: Set the duration for audio capture.
+- `-f <filename.wav>`: Translate from an existing audio file.
+- `-c <language>`: Choose a specific language or use `Smart Select` for automatic detection.
+- `-t`: Enable continuous translation mode. (No Spacebar toggle record)
+- `-v <voice_name>`: Activate text-to-speech for the translated text.
 
-Example: `python main_localWhisper.py -d 10`
 
-Example 2: `python main_localWhisper.py -f audioFileName.wav`
+### Usage Examples
+```
+# 4-second live translation in Spanish with toggle recording
+python main.py -d 4 -c Spanish
+
+# 10-second live translation in continuous mode
+python main.py -d 10 -t
+
+# Translate an existing audio file with Shimmer's voice
+python main.py -f audioFileName.wav -v shimmer
+
+# Smart Select with Nova voice, 8-second recording in continuous mode
+python main.py -c 'Smart Select' -v nova -d 8 -t
+```
+
 
 ## Troubleshooting
 If you encounter issues, check your microphone settings and ensure the OpenAI API key is valid.
