@@ -54,7 +54,7 @@ language_map = {
         "Español Andino",
         "La comida aquí es muy deliciosa.",
     ),
-    "Rioplatense Spanish (Argentina and Uruguay)": (
+    "Rioplatense Spanish (Argentinna and Uruguay)": (
         "Español Rioplatense",
         "¿Me pasás la yerba, por favor?",
     ),
