@@ -1,4 +1,4 @@
-# Real-Time Translation Tool with API-Powered Models
+<h1 align="center">● Real-Time Translation Tool with API-Powered Models</h1>
 
 ## Description
 Introducing 'Linguistic Pioneer v1.9' - our latest iteration of the Real-Time Translation Tool, which now includes groundbreaking enhancements and sets the stage for the future AI language assistant mode. Powered by OpenAI's API, this version offers unmatched transcription, translation, and text-to-speech capabilities, making global communication and language learning more accessible and effective.
@@ -26,7 +26,7 @@ Stay tuned for more updates as we continue to innovate and enhance the capabilit
 Ensure you have Python 3.x and necessary libraries installed, along with ffmpeg for audio process.
 
 - It also requires the command-line tool ffmpeg to be installed on your system, which is available from most package managers:
-```
+```bash
 # on Ubuntu or Debian
 sudo apt update && sudo apt install ffmpeg
 
@@ -44,14 +44,28 @@ scoop install ffmpeg
 ```
 
 ### Steps
-1. Clone the repository: `git clone https://github.com/yourusername/liveTranslation_openai-whisper.git`
-2. Navigate to the cloned directory: `cd liveTranslation_openai-whisper`
-3. Install required libraries: `pip install -r requirements.txt`
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/liveTranslation_openai-whisper.git
+```
+
+2. Navigate to the cloned directory:
+```bash
+cd liveTranslation_openai-whisper`
+```
+
+3. Install required libraries:
+```bash
+pip install -r requirements.txt
+```
 
 ## Configuration
 Set up your OpenAI API key in `config.yaml`:
+
 1. Rename `config.yaml.default` to `config.yaml`
+
 2. Enter your OpenAI API key in the `config.yaml` file:
+
 ```yaml
 openai:
   api_key: "Your-OpenAI-API-Key"
@@ -69,27 +83,31 @@ Execute with `python main.py` and the following optional flags:
 ### Usage Examples
 
 - 4-second live translation in Spanish with toggle recording
-  
-`python main.py -d 4 -c Spanish`
+```bash
+python main.py -d 4 -c Spanish
+```
 
 ---
 
 - 10-second live translation in continuous mode
-
-`python main.py -d 10 -t`
+```bash
+python main.py -d 10 -t
+```
 
 ---
 
 - Translate an existing audio file with Shimmer's voice
-  
-`python main.py -f audioFileName.wav -v shimmer`
+```bash
+python main.py -f audioFileName.wav -v shimmer
+```
 
 ---
 
 
 - Smart Select with Nova voice, 8-second recording in continuous mode
-  
-`python main.py -c 'Smart Select' -v nova -d 8 -t`
+```bash
+python main.py -c 'Smart Select' -v nova -d 8 -t
+```
 
 ---
 
