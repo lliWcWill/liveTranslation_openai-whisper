@@ -53,19 +53,31 @@ Execute with `python main.py` and the following optional flags:
 
 
 ### Usage Examples
-```
-# 4-second live translation in Spanish with toggle recording
-python main.py -d 4 -c Spanish
 
-# 10-second live translation in continuous mode
-python main.py -d 10 -t
+- 4-second live translation in Spanish with toggle recording
+  
+`python main.py -d 4 -c Spanish`
 
-# Translate an existing audio file with Shimmer's voice
-python main.py -f audioFileName.wav -v shimmer
+---
 
-# Smart Select with Nova voice, 8-second recording in continuous mode
-python main.py -c 'Smart Select' -v nova -d 8 -t
-```
+- 10-second live translation in continuous mode
+
+`python main.py -d 10 -t`
+
+---
+
+- Translate an existing audio file with Shimmer's voice
+  
+`python main.py -f audioFileName.wav -v shimmer`
+
+---
+
+
+- Smart Select with Nova voice, 8-second recording in continuous mode
+  
+`python main.py -c 'Smart Select' -v nova -d 8 -t`
+
+---
 
 
 ## Troubleshooting
