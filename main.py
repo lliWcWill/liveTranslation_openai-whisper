@@ -199,23 +199,19 @@ def play_audio(audio_content):
 
 
 def voice_stream(input_text, chosen_voice):
-    """
-    Generate the voice stream for the given input text and chosen voice.
-
-    Parameters:
-        input_text (str): The text to be converted into speech.
-        chosen_voice (str): The voice to be used for the speech conversion.
-
-    Returns:
-        None
-    """
     try:
         response = client.audio.speech.create(
             model="tts-1", voice=chosen_voice, input=input_text
         )
-
-        # Play the audio
-        play_audio(response.content)  # Implement play_audio to play the actual audio
+        replay_audio = response.content
+        while True:
+            play_audio(replay_audio)  # Play the audio
+            print("\nPress 'r' to replay, or Spacebar to continue.")
+            user_input = readchar.readkey()
+            if user_input == " ":  # Continue to next recording
+                break
+            elif user_input.lower() == "r":  # Replay the speech
+                continue
     except Exception as e:
         logger.error(Fore.RED + f"Failed to speak text: {e}\n")
 
@@ -517,14 +513,18 @@ def single_run_mode(content):
         None
     """
     audio_files = []  # Keep track of recorded audio files for cleanup
+    first_run = True  # Flag to check if it's the first run
 
     while True:
         try:
-            print(
-                Fore.GREEN
-                + "Press the space bar to start recording or 'exit' to quit:"
-                + Style.RESET_ALL
-            )
+            if first_run:
+                print(
+                    Fore.GREEN
+                    + "Press the space bar to start recording or 'exit' to quit:"
+                    + Style.RESET_ALL
+                )
+                first_run = False  # After the first run, set this to False
+
             user_input = readchar.readkey()
 
             if user_input == " ":
@@ -603,51 +603,62 @@ def main():
         Fore.GREEN + "\nWelcome to the real-time translation tool.\n" + Style.RESET_ALL
     )
 
-    # Convert language map keys to a list for indexed access
-    languages_list = list(language_map.keys())
+    content = DEFAULT_CONTENT  # Set the default content
 
-    # If a language is specified directly, bypass the language selection
-    if isinstance(args.content, str) and args.content in language_map:
-        native_name, greeting = language_map[args.content]
+    # Present a numbered list of languages if -c is used without a value or with an invalid value
+    if (args.content is None) or (
+        args.content
+        and args.content not in language_map
+        and args.content != "Smart Select"
+    ):
+        language_options = list(language_map.keys()) + ["Smart Select"]
+        for index, language in enumerate(language_options, start=1):
+            print(f"{index}. {language}")
+
+        try:
+            choice_index = (
+                int(input("Enter the number of your language or 'Smart Select': ")) - 1
+            )
+            if 0 <= choice_index < len(language_options):
+                chosen_language = language_options[choice_index]
+                if chosen_language == "Smart Select":
+                    content = SPECIAL_CONTENT
+                else:
+                    selected_language = language_map[chosen_language]
+                    content = DEFAULT_CONTENT.replace(
+                        "[Desired Language]", chosen_language
+                    )
+                    content = content.replace(
+                        "[Name of desired language in that language]",
+                        selected_language[0],
+                    )
+                    content = content.replace(
+                        "[Phrase in desired language in that language's text if possible]",
+                        selected_language[1],
+                    )
+            else:
+                print("Invalid choice. Exiting.")
+                sys.exit(1)  # Exit if the choice is invalid
+        except ValueError:
+            print("Invalid input. Please enter a number. Exiting.")
+            sys.exit(1)
+
+    # If -c is used with a valid language directly
+    elif args.content in language_map:
+        selected_language = language_map[args.content]
         content = DEFAULT_CONTENT.replace("[Desired Language]", args.content)
         content = content.replace(
-            "[Name of desired language in that language]", native_name
+            "[Name of desired language in that language]", selected_language[0]
         )
         content = content.replace(
-            "[Phrase in desired language in that language's text if possible]", greeting
+            "[Phrase in desired language in that language's text if possible]",
+            selected_language[1],
         )
-    elif args.content == "Smart Select":
-        content = SPECIAL_CONTENT
+
+    if args.continuous:
+        continuous_run_mode(content)
     else:
-        # Display dropdown list for language selection
-        print("Choose language:")
-        for number, language in enumerate(languages_list, start=1):
-            print(f"{number}. {language}")
-        print(f"{len(languages_list) + 1}. Smart Select")
-
-        choice = input("Enter the number for your language or Smart Select: ")
-        if int(choice) == len(languages_list) + 1:
-            content = SPECIAL_CONTENT
-        else:
-            # Convert choice number back to language name
-            selected_language = languages_list[int(choice) - 1]
-            native_name, greeting = language_map[selected_language]
-            content = DEFAULT_CONTENT.replace("[Desired Language]", selected_language)
-            content = content.replace(
-                "[Name of desired language in that language]", native_name
-            )
-            content = content.replace(
-                "[Phrase in desired language in that language's text if possible]",
-                greeting,
-            )
-
-    # In your main function
-
-
-if args.continuous:
-    continuous_run_mode(args.content)
-else:
-    single_run_mode(args.content)
+        single_run_mode(content)
 
 
 if __name__ == "__main__":
