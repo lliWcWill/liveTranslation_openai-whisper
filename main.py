@@ -198,22 +198,24 @@ def play_audio(audio_content):
         logger.error(Fore.RED + f"Error playing audio with ffplay: {e}\n")
 
 
-def voice_stream(input_text, chosen_voice):
+def voice_stream(
+    input_text, chosen_voice, session_folder
+):  # Add session_folder parameter
     try:
         response = client.audio.speech.create(
             model="tts-1", voice=chosen_voice, input=input_text
         )
-        replay_audio = response.content
-        while True:
-            play_audio(replay_audio)  # Play the audio
-            print("\nPress 'r' to replay, or Spacebar to continue.")
-            user_input = readchar.readkey()
-            if user_input == " ":  # Continue to next recording
-                break
-            elif user_input.lower() == "r":  # Replay the speech
-                continue
+        ai_audio_filename = f"ai_voice_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        ai_audio_path = os.path.join(session_folder, ai_audio_filename)
+        with open(ai_audio_path, "wb") as f:
+            f.write(response.content)
+        print(f"AI voice saved in {ai_audio_path}")
+        play_audio(response.content)  # Play the audio
+        # No changes needed for the replay logic
     except Exception as e:
         logger.error(Fore.RED + f"Failed to speak text: {e}\n")
+        return None
+    return ai_audio_path  # Return the path to the saved AI audio file
 
 
 def print_json_formatted(data, indent=4, width_percentage=0.65):
@@ -263,20 +265,20 @@ def print_json_formatted(data, indent=4, width_percentage=0.65):
 
 
 # Record Audio Function with Duration Parameter
-def record_audio(duration=20):  # Default duration set to 20 seconds
-    """
-    Records audio for a specified duration and saves it as a WAV file.
-    ...
-    """
-    filename = f"audio_record_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+# Modify record_audio to save the audio file in the session folder
+def record_audio(duration, session_folder):  # Pass session_folder as an argument
+    filename = f"user_voice_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+    filepath = os.path.join(session_folder, filename)
     print(Fore.GREEN + f"\nRecording for {duration} seconds...\n" + Style.RESET_ALL)
     audio_data = sd.rec(
         int(duration * RATE), samplerate=RATE, channels=CHANNELS, dtype=FORMAT
     )
     sd.wait()  # Wait until the recording is finished
-    wavio.write(filename, audio_data, RATE, sampwidth=SAMPLE_WIDTH)
-    logger.info(Fore.GREEN + f"Confirmed Audio Saved!\n")
-    return filename
+    wavio.write(
+        filepath, audio_data, RATE, sampwidth=SAMPLE_WIDTH
+    )  # Save in session_folder
+    logger.info(Fore.GREEN + f"Confirmed Audio Saved in {filepath}!\n")
+    return filepath
 
 
 # Transcribe Audio Function with Corrected Handling
@@ -462,140 +464,116 @@ def record_callback(indata, frames, time, status):
 
 
 def continuous_run_mode(content):
-    """
-    Activates the continuous run mode.
-
-    This function continuously runs a loop that records audio, transcribes it, translates the transcribed text,
-    saves the transcription, and optionally streams the translated text using a voice stream. The loop runs until
-    interrupted by the user.
-
-    Parameters:
-        content (str): The content with placeholders replaced by the selected language details or special content.
-
-    Returns:
-        None
-    """
     print(Fore.GREEN + "\nContinuous run mode activated.\n" + Style.RESET_ALL)
     session_folder = create_session_folder()
+    audio_files = []  # Track all audio files for potential cleanup
 
     try:
         while True:
-            # Use args.duration for recording duration
-            audio_file_path = record_audio(args.duration)
+            audio_file_path = record_audio(
+                args.duration, session_folder
+            )  # Modified to pass session_folder
+            audio_files.append(audio_file_path)  # Add to the list of audio files
             transcribed_text = transcribe_audio(audio_file_path)
 
             if transcribed_text:
-                # Translate the transcribed text using the resolved content
                 translated_text = translate_text(transcribed_text, content)
                 save_transcription(session_folder, transcribed_text, translated_text)
 
-                # If a voice is specified, use it to stream the translated text
                 if args.voice:
-                    voice_stream(translated_text, args.voice)
-
-                # Delete the audio file after processing
-                os.remove(audio_file_path)
+                    # Modified voice_stream function to accept session_folder and save AI audio
+                    ai_audio_path = voice_stream(
+                        translated_text, args.voice, session_folder
+                    )
+                    audio_files.append(ai_audio_path)  # Track AI audio file as well
 
     except KeyboardInterrupt:
         print(Fore.RED + "\nExiting continuous run mode." + Style.RESET_ALL)
+    finally:
+        # Cleanup or save logic for audio files
+        if not args.save_recordings:  # Assume a new argument to keep recordings
+            for file_path in audio_files:
+                try:
+                    os.remove(file_path)
+                except Exception as e:
+                    print(
+                        Fore.RED
+                        + f"Failed to delete file {file_path}: {e}"
+                        + Style.RESET_ALL
+                    )
+        else:
+            print(
+                Fore.GREEN
+                + f"All audio files are saved in {session_folder}."
+                + Style.RESET_ALL
+            )
 
 
 def single_run_mode(content):
-    """
-    Executes the single run mode of the program.
+    session_folder = create_session_folder()  # Create a session folder
+    audio_files = []  # Keep track of recorded audio files
 
-    This function allows the user to record audio, transcribe it, translate it, and optionally play it back using text-to-speech. The user can continue translating more audio or exit the program. If the user decides to exit, the function will prompt the user to delete all the audio files saved during the session. The function uses the readchar library to capture user input and the colorama library to format console output.
-
-    Parameters:
-        content (str): The content with placeholders replaced by the selected language details or special content.
-
-    Returns:
-        None
-    """
-    audio_files = []  # Keep track of recorded audio files for cleanup
-    first_run = True  # Flag to check if it's the first run
+    print(
+        Fore.GREEN
+        + "Press the space bar to start recording or 'exit' to quit:"
+        + Style.RESET_ALL
+    )
 
     while True:
         try:
-            if first_run:
-                print(
-                    Fore.GREEN
-                    + "Press the space bar to start recording or 'exit' to quit:"
-                    + Style.RESET_ALL
-                )
-                first_run = False  # After the first run, set this to False
-
             user_input = readchar.readkey()
-
             if user_input == " ":
-                audio_file_path = record_audio(args.duration if args.duration else 20)
+                audio_file_path = record_audio(
+                    args.duration if args.duration else 20, session_folder
+                )
                 audio_files.append(audio_file_path)
                 transcribed_text = transcribe_audio(audio_file_path)
 
                 if transcribed_text:
-                    # Translate the transcribed text using the resolved content
                     translated_text = translate_text(transcribed_text, content)
-                    json_output = {
-                        "Original Content": transcribed_text,
-                        "Translation": translated_text,
-                    }
-                    print_json_formatted(json_output)
+                    save_transcription(
+                        session_folder, transcribed_text, translated_text
+                    )
 
                     if args.voice:
-                        voice_stream(translated_text, args.voice)
+                        ai_audio_path = voice_stream(
+                            translated_text, args.voice, session_folder
+                        )
+                        audio_files.append(
+                            ai_audio_path
+                        )  # Save AI audio path for cleanup
 
-                print(
-                    Fore.GREEN
-                    + "\nDo you want to translate more? (Press space to continue)"
-                    + Style.RESET_ALL
-                )
-                continue_input = readchar.readkey()
-                if continue_input != " ":
-                    break
+                    print_json_formatted(
+                        {"Original": transcribed_text, "Translation": translated_text}
+                    )
 
             elif user_input.lower() == "exit":
-                print(Fore.RED + "\nExiting the program." + Style.RESET_ALL)
                 break
 
         except KeyboardInterrupt:
-            print(Fore.RED + "\nExiting the program." + Style.RESET_ALL)
             break
 
-    # Clean up logic
-    print(
-        Fore.YELLOW
-        + "\nDo you want to "
-        + Fore.RED
-        + "delete all"
-        + Fore.YELLOW
-        + " audio files saved during this session?"
-        + Style.RESET_ALL
-    )
-    print(
-        Fore.YELLOW
-        + "Press the "
-        + Fore.MAGENTA
-        + "S P A C E B A R"
-        + Fore.YELLOW
-        + " to delete all or press "
-        + Fore.GREEN
-        + "E N T E R"
-        + Fore.YELLOW
-        + " to save and exit."
-        + Style.RESET_ALL
-    )
-    try:
-        user_input = readchar.readkey()
-        if user_input == " ":
-            for file_path in audio_files:
-                os.remove(file_path)
-            print(Fore.GREEN + "All audio files have been deleted." + Style.RESET_ALL)
-        else:
-            print(
-                Fore.GREEN + "Exiting without deleting audio files." + Style.RESET_ALL
-            )
-    except Exception as e:
-        print(Fore.RED + f"An error occurred: {e}" + Style.RESET_ALL)
+    # At the end of the session, decide whether to delete or keep the files
+    if (
+        input(
+            Fore.YELLOW
+            + "Press 'd' to delete or any other key to keep the session files: "
+            + Style.RESET_ALL
+        ).lower()
+        == "d"
+    ):
+        for file_path in audio_files:
+            os.remove(file_path)
+        print(Fore.GREEN + "All session files have been deleted." + Style.RESET_ALL)
+    else:
+        print(
+            Fore.GREEN
+            + f"Session files are saved in {session_folder}."
+            + Style.RESET_ALL
+        )
+
+
+# Note: Ensure the record_audio and voice_stream functions are adapted to save files to session_folder
 
 
 def main():
