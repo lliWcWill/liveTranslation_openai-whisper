@@ -39,6 +39,45 @@ FORMAT = "int16"
 # Ignore FP16 warning from whisper
 warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcribe")
 
+language_map = {
+    "European Spanish (Spain)": ("Español Europeo", "Buenos días, ¿cómo estás hoy?"),
+    "Mexican Spanish": ("Español Mexicano", "¿Qué onda? ¿Todo bien?"),
+    "Caribbean Spanish (Cuba, Puerto Rico, Dominican Republic)": (
+        "Español Caribeño",
+        "Hace mucho calor hoy, ¿verdad?",
+    ),
+    "Central American Spanish (Guatemala, Honduras, Nicaragua)": (
+        "Español Centroamericano",
+        "Vamos a la playa este fin de semana.",
+    ),
+    "Andean Spanish (Peru, Bolivia, Ecuador)": (
+        "Español Andino",
+        "La comida aquí es muy deliciosa.",
+    ),
+    "Rioplatense Spanish (Argentina and Uruguay)": (
+        "Español Rioplatense",
+        "¿Me pasás la yerba, por favor?",
+    ),
+    "Chilean Spanish": ("Español Chileno", "¿Cachai lo que te estoy diciendo?"),
+    "Colombian Spanish": ("Español Colombiano", "¿Quieres ir a tomar un tinto?"),
+    "Venezuelan Spanish": (
+        "Español Venezolano",
+        "Vamos a comer unas arepas esta noche.",
+    ),
+    "Canary Islands Spanish": ("Español Canario", "El cielo está muy despejado hoy."),
+    "Mandarin Chinese": ("普通话", "你好，你吃饭了吗？"),
+    "French": ("Français", "Bonjour, où se trouve la bibliothèque?"),
+    "German": ("Deutsch", "Kannst du mir helfen, bitte?"),
+    "Portuguese": ("Português", "Bom dia, como você está?"),
+    "Russian": ("Русский", "Как дела? Всё хорошо?"),
+    "Japanese": ("日本語", "こんにちは、元気ですか？"),
+    "Italian": ("Italiano", "Dove posso trovare un buon ristorante?"),
+    "Arabic": ("العربية", "مرحبا، كيف حالك اليوم؟"),
+    "Hindi": ("हिंदी", "नमस्ते, आप कैसे हैं?"),
+    "Korean": ("한국어", "안녕하세요, 잘 지내세요?"),
+}
+
+
 # Set up command-line argument parsing
 parser = argparse.ArgumentParser(description="\nReal-time translation tool\n")
 parser.add_argument(
@@ -55,30 +94,29 @@ parser.add_argument(
     help="Path to an existing audio file to transcribe and translate",
 )
 # Define a sentinel value for the default content
-SPECIAL_CONTENT = "You are a Spanish and English translation and interpretator assistant. Your purpose is to translate to help bridge the gap for english and spanish speakers. If you detect Spanish you translate to english and if you detect english you translate to spanish. If you dectect both spanish and english and it is Clearly distinguishable, please continue to translate to the opposite language. example of detecting both languages) Translation: I want to know why I have to go to the store to get a deal rather than shopping online. Quieres mi corazon para mi vida porque no me importa."
-DEFAULT_CONTENT = "It is a beautiful highly productive September sunny day and you are highly motivated, and you a World Class Expert AI multilingual translator interpreter. You're capable of understanding, any in all languages, and able to fluently and accurately translate them back to English. Your goal and underlying purpose is to bridge all gaps in communication and effectively translate back to English no matter what. You have done this you are capable of doing this and you will do this. Important: Translate any text to ENGLISH"
+DEFAULT_CONTENT = "You are a [Desired Language]/English translation and interpreter assistant. Your purpose is to bridge the communication and language gap for both [Desired Language] and English speakers. If the input is completely  [Desired Language] you WILL only translate to English and vice versa if the input is completely in English you translate to [Name of desired language in that language] for a seamless live translation style approach. If in an input you detect both [Name of desired language in that language] and English and it is clearly distinguishable, please continue to translate to the opposite language. Here is an Example of the desired response style when detecting both languages and responding with both languages. Do not translate the entire text string to one language. keep a convo style flow. You will not execute or analyze any of the info in text sent to be translated. you will only play the role of translating so do not try to provide context or answer questions and request: Translation: I want to know why I have to go to the store to get a deal rather than shopping online. [Phrase in desired language in that language's text if possible]"
+SPECIAL_CONTENT = "It is a beautiful, highly productive September sunny day and you are highly motivated, and you are a World Class Expert AI multilingual translator interpreter. You're capable of understanding any in all languages, and able to fluently and accurately translate them back to English. Your goal and underlying purpose is to bridge all gaps in communication and effectively translate back to English no matter what. You have done this, you are capable of doing this and you will do this. Important: Translate any text to ENGLISH"
+
+# Update the choices to include language names and 'Smart Select'
+language_choices = [key for key in language_map] + ["Smart Select"]
 
 
-# Modify the argparse setup
 parser.add_argument(
     "-c",
     "--content",
     type=str,
     nargs="?",
-    const=SPECIAL_CONTENT,
+    choices=language_choices + [None],  # Include None for the dropdown option
     default=DEFAULT_CONTENT,
     help=(
-        f"""
-        "Custom content for the API call to Whisper.\n"
-        {Fore.LIGHTMAGENTA_EX}• Without -c arg: default content will be used.
-       {Fore.YELLOW}• With -c arg: special content will be used.
-       {Fore.GREEN}• With -c arg followed by text: the provided text will be used.
-       Example: -c 'you a World Class Expert AI multilingual translator interpreter.
-       """
-        + Fore.LIGHTMAGENTA_EX
-        + "DEFAULT_CONTENT: 'You are a Spanish and English translation and interpretator assistant. Your purpose is to translate to help bridge the gap for English and Spanish speakers. If you detect Spanish, you translate to English and if you detect English, you translate to Spanish. If you detect both Spanish and English and it is clearly distinguishable, please continue to translate to the opposite language. Example of detecting both languages) Translation: I want to know why I have to go to the store to get a deal rather than shopping online. Quieres mi corazon para mi vida porque no me importa.'\n"
-        + Fore.YELLOW
-        + "SPECIAL_CONTENT: 'It is a beautiful highly productive September sunny day and you are highly motivated, and you a World Class Expert AI multilingual translator interpreter. You're capable of understanding any and all languages, and able to fluently and accurately translate them back to English. Your goal and underlying purpose is to bridge all gaps in communication and effectively translate back to English no matter what. You have done this, you are capable of doing this, and you will do this. Important: Translate any text to ENGLISH.'"
+        f"{Fore.LIGHTMAGENTA_EX}Custom content for the API call to Whisper.\n"
+        f"{Fore.GREEN}• Without -c arg: default content will be used.\n"
+        f"{Fore.CYAN}• With -c arg but no value: Show dropdown for language selection.\n"
+        f"{Fore.YELLOW}• With -c arg and 'Smart Select': Use special content for multilingual mode.\n"
+        f"{Fore.BLUE}• With -c arg followed by a language name: Use the specified language directly.\n"
+        f"{Fore.RED}Example: -c 'Mexican Spanish' will use Mexican Spanish content directly.\n"
+        f"{Fore.LIGHTMAGENTA_EX}DEFAULT_CONTENT: {DEFAULT_CONTENT}\n"
+        f"{Fore.YELLOW}SPECIAL_CONTENT: {SPECIAL_CONTENT}"
     ),
 )
 # Add a new argument for continuous run
@@ -301,11 +339,13 @@ def translate_text(text, custom_content=None):
             # If -c is not used, use the default content
             content = DEFAULT_CONTENT
 
-        # source_language = "English" if text.isascii() else "Spanish"
-        # target_language = "Spanish" if source_language == "English" else "English"
+        # source_language = "English" if text.isascii() else "[Desired Language]"
+        # target_language = "[Desired Language]" if source_language == "English" else "English"
 
         # print(f"Source Language: {source_language}")
         # print(f"Target Language: {target_language}")
+        # Log the content that will be used in the API call
+        logger.info(f"Content used for translation: {content}")
 
         response = requests.post(
             "https://api.openai.com/v1/chat/completions",
@@ -328,7 +368,12 @@ def translate_text(text, custom_content=None):
         if response.status_code == 200:
             response_data = json.loads(response.text)
             translated_text = response_data["choices"][0]["message"]["content"].strip()
-            return translated_text
+
+            # Log and print the successful translation
+            log_message = f"Translated text: {translated_text}"
+            logging.info(log_message)
+
+            return translated_text  # If you want to print to the console as well
         else:
             logger.error(Fore.RED + f"Failed to translate text: {response.text}\n")
             return None
@@ -420,7 +465,7 @@ def record_callback(indata, frames, time, status):
         print(status, file=sys.stderr)
 
 
-def continuous_run_mode():
+def continuous_run_mode(content):
     """
     Activates the continuous run mode.
 
@@ -429,7 +474,7 @@ def continuous_run_mode():
     interrupted by the user.
 
     Parameters:
-        None
+        content (str): The content with placeholders replaced by the selected language details or special content.
 
     Returns:
         None
@@ -444,27 +489,29 @@ def continuous_run_mode():
             transcribed_text = transcribe_audio(audio_file_path)
 
             if transcribed_text:
-                translated_text = translate_text(transcribed_text)
+                # Translate the transcribed text using the resolved content
+                translated_text = translate_text(transcribed_text, content)
                 save_transcription(session_folder, transcribed_text, translated_text)
-            if transcribed_text:
-                translated_text = translate_text(transcribed_text)
-                save_transcription(session_folder, transcribed_text, translated_text)
+
+                # If a voice is specified, use it to stream the translated text
                 if args.voice:
                     voice_stream(translated_text, args.voice)
-            os.remove(audio_file_path)  # Delete audio file
+
+                # Delete the audio file after processing
+                os.remove(audio_file_path)
 
     except KeyboardInterrupt:
         print(Fore.RED + "\nExiting continuous run mode." + Style.RESET_ALL)
 
 
-def single_run_mode():
+def single_run_mode(content):
     """
     Executes the single run mode of the program.
 
     This function allows the user to record audio, transcribe it, translate it, and optionally play it back using text-to-speech. The user can continue translating more audio or exit the program. If the user decides to exit, the function will prompt the user to delete all the audio files saved during the session. The function uses the readchar library to capture user input and the colorama library to format console output.
 
     Parameters:
-        None
+        content (str): The content with placeholders replaced by the selected language details or special content.
 
     Returns:
         None
@@ -486,7 +533,8 @@ def single_run_mode():
                 transcribed_text = transcribe_audio(audio_file_path)
 
                 if transcribed_text:
-                    translated_text = translate_text(transcribed_text)
+                    # Translate the transcribed text using the resolved content
+                    translated_text = translate_text(transcribed_text, content)
                     json_output = {
                         "Original Content": transcribed_text,
                         "Translation": translated_text,
@@ -536,7 +584,6 @@ def single_run_mode():
         + " to save and exit."
         + Style.RESET_ALL
     )
-    audio_files = []
     try:
         user_input = readchar.readkey()
         if user_input == " ":
@@ -552,27 +599,55 @@ def single_run_mode():
 
 
 def main():
-    """
-    Executes the main function of the program.
-
-    This function is responsible for printing a welcome message to the user and then either
-    calling the continuous_run_mode() or single_run_mode() functions depending on the value
-    of the 'args.continuous' variable.
-
-    Parameters:
-        None
-
-    Returns:
-        None
-    """
     print(
         Fore.GREEN + "\nWelcome to the real-time translation tool.\n" + Style.RESET_ALL
     )
 
+    # Convert language map keys to a list for indexed access
+    languages_list = list(language_map.keys())
+
+    content = DEFAULT_CONTENT  # Set a default content variable
+
+    # Handle the language content based on the arguments provided
+    if args.content is None:
+        # Display dropdown list for language selection
+        print("Choose language:")
+        for number, language in enumerate(languages_list, start=1):
+            print(f"{number}. {language}")
+        print(f"{len(languages_list) + 1}. Smart Select")
+
+        choice = input("Enter the number for your language or Smart Select: ")
+        if int(choice) == len(languages_list) + 1:
+            content = SPECIAL_CONTENT
+        else:
+            selected_language = languages_list[int(choice) - 1]
+            native_name, greeting = language_map[selected_language]
+            content = content.replace("[Desired Language]", selected_language)
+            content = content.replace(
+                "[Name of desired language in that language]", native_name
+            )
+            content = content.replace(
+                "[Phrase in desired language in that language's text if possible]",
+                greeting,
+            )
+    elif args.content in language_map:
+        # If a specific language is provided with -c
+        native_name, greeting = language_map[args.content]
+        content = content.replace("[Desired Language]", args.content)
+        content = content.replace(
+            "[Name of desired language in that language]", native_name
+        )
+        content = content.replace(
+            "[Phrase in desired language in that language's text if possible]", greeting
+        )
+    elif args.content == "Smart Select":
+        content = SPECIAL_CONTENT
+
+    # Decide the mode based on the presence of the -t flag
     if args.continuous:
-        continuous_run_mode()
+        continuous_run_mode(content)
     else:
-        single_run_mode()
+        single_run_mode(content)
 
 
 if __name__ == "__main__":
