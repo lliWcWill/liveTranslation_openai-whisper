@@ -41,7 +41,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="whisper.transcri
 
 language_map = {
     "European Spanish (Spain)": ("Español Europeo", "Buenos días, ¿cómo estás hoy?"),
-    "Mexican Spanish": ("Español Mexicano", "¿Qué onda? ¿Todo bien?"),
+    "Spanish": ("Español", "¿Qué onda? ¿Todo bien?"),
     "Caribbean Spanish (Cuba, Puerto Rico, Dominican Republic)": (
         "Español Caribeño",
         "Hace mucho calor hoy, ¿verdad?",
@@ -114,7 +114,7 @@ parser.add_argument(
         f"{Fore.CYAN}• With -c arg but no value: Show dropdown for language selection.\n"
         f"{Fore.YELLOW}• With -c arg and 'Smart Select': Use special content for multilingual mode.\n"
         f"{Fore.BLUE}• With -c arg followed by a language name: Use the specified language directly.\n"
-        f"{Fore.RED}Example: -c 'Mexican Spanish' will use Mexican Spanish content directly.\n"
+        f"{Fore.RED}Example: -c 'Spanish' will use Spanish content directly.\n"
         f"{Fore.LIGHTMAGENTA_EX}DEFAULT_CONTENT: {DEFAULT_CONTENT}\n"
         f"{Fore.YELLOW}SPECIAL_CONTENT: {SPECIAL_CONTENT}"
     ),
@@ -606,10 +606,19 @@ def main():
     # Convert language map keys to a list for indexed access
     languages_list = list(language_map.keys())
 
-    content = DEFAULT_CONTENT  # Set a default content variable
-
-    # Handle the language content based on the arguments provided
-    if args.content is None:
+    # If a language is specified directly, bypass the language selection
+    if isinstance(args.content, str) and args.content in language_map:
+        native_name, greeting = language_map[args.content]
+        content = DEFAULT_CONTENT.replace("[Desired Language]", args.content)
+        content = content.replace(
+            "[Name of desired language in that language]", native_name
+        )
+        content = content.replace(
+            "[Phrase in desired language in that language's text if possible]", greeting
+        )
+    elif args.content == "Smart Select":
+        content = SPECIAL_CONTENT
+    else:
         # Display dropdown list for language selection
         print("Choose language:")
         for number, language in enumerate(languages_list, start=1):
@@ -620,9 +629,10 @@ def main():
         if int(choice) == len(languages_list) + 1:
             content = SPECIAL_CONTENT
         else:
+            # Convert choice number back to language name
             selected_language = languages_list[int(choice) - 1]
             native_name, greeting = language_map[selected_language]
-            content = content.replace("[Desired Language]", selected_language)
+            content = DEFAULT_CONTENT.replace("[Desired Language]", selected_language)
             content = content.replace(
                 "[Name of desired language in that language]", native_name
             )
@@ -630,24 +640,14 @@ def main():
                 "[Phrase in desired language in that language's text if possible]",
                 greeting,
             )
-    elif args.content in language_map:
-        # If a specific language is provided with -c
-        native_name, greeting = language_map[args.content]
-        content = content.replace("[Desired Language]", args.content)
-        content = content.replace(
-            "[Name of desired language in that language]", native_name
-        )
-        content = content.replace(
-            "[Phrase in desired language in that language's text if possible]", greeting
-        )
-    elif args.content == "Smart Select":
-        content = SPECIAL_CONTENT
 
-    # Decide the mode based on the presence of the -t flag
-    if args.continuous:
-        continuous_run_mode(content)
-    else:
-        single_run_mode(content)
+    # In your main function
+
+
+if args.continuous:
+    continuous_run_mode(args.content)
+else:
+    single_run_mode(args.content)
 
 
 if __name__ == "__main__":
