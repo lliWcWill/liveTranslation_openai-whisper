@@ -266,18 +266,22 @@ def print_json_formatted(data, indent=4, width_percentage=0.65):
 
 # Record Audio Function with Duration Parameter
 # Modify record_audio to save the audio file in the session folder
-def record_audio(duration, session_folder):  # Pass session_folder as an argument
+def record_audio(duration, session_folder):
     filename = f"user_voice_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
     filepath = os.path.join(session_folder, filename)
+
     print(Fore.GREEN + f"\nRecording for {duration} seconds...\n" + Style.RESET_ALL)
+
     audio_data = sd.rec(
         int(duration * RATE), samplerate=RATE, channels=CHANNELS, dtype=FORMAT
     )
     sd.wait()  # Wait until the recording is finished
+
     wavio.write(
         filepath, audio_data, RATE, sampwidth=SAMPLE_WIDTH
     )  # Save in session_folder
     logger.info(Fore.GREEN + f"Confirmed Audio Saved in {filepath}!\n")
+
     return filepath
 
 
