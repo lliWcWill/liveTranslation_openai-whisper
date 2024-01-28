@@ -3,16 +3,16 @@
 ## Description
 This release (v1.8) of our Real-Time Translation Tool brings significant enhancements, leveraging OpenAI's API for improved transcription, translation, and text-to-speech capabilities. It's a powerful tool for global communication and language learning, with an upcoming AI language teacher assistant feature.
 
-## Release Notes for v1.8
-### New Features
-- **Enhanced Audio Recording**: Integrated changes to record and save user's voice in session folders.
-- **AI Voice Saving**: AI-generated voice responses are now saved in session folders, providing a comprehensive record of interactions.
-- **Streamlined User Experience**: Reduced unnecessary prompts and refined the user flow for a smoother experience.
-- **Session Data Management**: Added options to save or delete session files, giving users more control over their data.
+## Release Notes for v1.8 🚀
+### New Features 🌟
+- **Enhanced Audio Recording**: Integrated changes to **record and save user's voice** in session folders.
+- **AI Voice Saving**: AI-generated voice responses are now **saved in session folders**, providing a comprehensive record of interactions.
+- **Streamlined User Experience**: Reduced unnecessary prompts and refined the user flow for a **smoother experience**.
+- **Session Data Management**: Added options to **save or delete session files**, giving users more control over their data.
 
-### Improvements
-- **Voice Stream Functionality**: Refined the voice stream function to accept a session folder, ensuring AI voice responses are properly saved.
-- **Session Folder Management**: Improved session folder creation and management, enabling better organization of session data.
+### Improvements 💡
+- **Voice Stream Functionality**: Refined the voice stream function to accept a session folder, ensuring **AI voice responses are properly saved**.
+- **Session Folder Management**: Improved session folder creation and management, enabling better **organization of session data**.
 - **Error Handling**: Enhanced error handling for robustness, especially in file operations and external API interactions.
 
 ### Installation & Setup
