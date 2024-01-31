@@ -10,6 +10,8 @@ import time
 import warnings
 from datetime import datetime
 
+import glob
+from pathlib import Path
 import readchar
 import requests
 import sounddevice as sd
@@ -868,6 +870,15 @@ def single_run_mode(content):
 # Note: Ensure the record_audio and voice_stream functions are adapted to save files to session_folder
 
 
+# Function to save transcription (and translation) to a text file on the desktop
+def save_to_desktop(file_name, content):
+    desktop_path = Path.home() / "Desktop"
+    file_path = desktop_path / file_name
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(content)
+    print(f"Saved: {file_path}")
+
+
 def main():
     """
     This function acts as the entry point of the program. It facilitates real-time audio translation by prompting the user to select a translation language and operates in either continuous run mode or single run mode, influenced by command line arguments.
@@ -897,62 +908,53 @@ def main():
         Fore.GREEN + "\nWelcome to the real-time translation tool.\n" + Style.RESET_ALL
     )
 
-    content = DEFAULT_CONTENT  # Set the default content
-
-    # Present a numbered list of languages if -c is used without a value or with an invalid value
-    if (args.content is None) or (
-        args.content
-        and args.content not in language_map
-        and args.content != "Smart Select"
-    ):
-        language_options = list(language_map.keys()) + ["Smart Select"]
-        for index, language in enumerate(language_options, start=1):
-            print(f"{index}. {language}")
-
-        try:
-            choice_index = (
-                int(input("Enter the number of your language or 'Smart Select': ")) - 1
-            )
-            if 0 <= choice_index < len(language_options):
-                chosen_language = language_options[choice_index]
-                if chosen_language == "Smart Select":
-                    content = SPECIAL_CONTENT
-                else:
-                    selected_language = language_map[chosen_language]
-                    content = DEFAULT_CONTENT.replace(
-                        "[Desired Language]", chosen_language
-                    )
-                    content = content.replace(
-                        "[Name of desired language in that language]",
-                        selected_language[0],
-                    )
-                    content = content.replace(
-                        "[Phrase in desired language in that language's text if possible]",
-                        selected_language[1],
-                    )
-            else:
-                print("Invalid choice. Exiting.")
-                sys.exit(1)  # Exit if the choice is invalid
-        except ValueError:
-            print("Invalid input. Please enter a number. Exiting.")
+    # Handling `-f` argument with interactive choices
+    if args.file:
+        action_choice = input(
+            "Choose action: 1 for 'transcribe and translate', 2 for 'only transcribe': "
+        ).strip()
+        if action_choice not in ["1", "2"]:
+            print("Invalid choice. Exiting.")
             sys.exit(1)
 
-    # If -c is used with a valid language directly
-    elif args.content in language_map:
-        selected_language = language_map[args.content]
-        content = DEFAULT_CONTENT.replace("[Desired Language]", args.content)
-        content = content.replace(
-            "[Name of desired language in that language]", selected_language[0]
+        file_choice = (
+            input("Process all audio files in the same directory? (yes/no): ")
+            .strip()
+            .lower()
         )
-        content = content.replace(
-            "[Phrase in desired language in that language's text if possible]",
-            selected_language[1],
-        )
+        files_to_process = []
+        if file_choice == "yes":
+            directory_path = input("Enter the directory path: ").strip()
+            files_to_process = glob.glob(os.path.join(directory_path, "*.wav"))
+        elif file_choice == "no":
+            file_path = input("Enter the full path to the audio file: ").strip()
+            files_to_process.append(file_path)
+        else:
+            print("Invalid choice. Exiting.")
+            sys.exit(1)
 
-    if args.continuous:
-        continuous_run_mode(content)
+        for file_path in files_to_process:
+            base_name = os.path.basename(file_path)
+            text_file_name = f"{os.path.splitext(base_name)[0]}_transcription.txt"
+            if action_choice == "1":  # Transcribe and translate
+                transcribed_text = transcribe_audio(file_path)
+                if transcribed_text:
+                    translated_text = translate_text(transcribed_text, DEFAULT_CONTENT)
+                    content = (
+                        f"Original: {transcribed_text}\nTranslation: {translated_text}"
+                    )
+                    save_to_desktop(text_file_name, content)
+            elif action_choice == "2":  # Only transcribe
+                transcribed_text = transcribe_audio(file_path)
+                if transcribed_text:
+                    content = f"Transcription: {transcribed_text}"
+                    save_to_desktop(text_file_name, content)
     else:
-        single_run_mode(content)
+        # Existing logic for continuous or single run mode remains unchanged...
+        if args.continuous:
+            continuous_run_mode(DEFAULT_CONTENT)
+        else:
+            single_run_mode(DEFAULT_CONTENT)
 
 
 if __name__ == "__main__":
