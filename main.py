@@ -231,8 +231,9 @@ def save_transcription(folder, original, translated):
           and the translated text labeled as 'Translated', followed by two newline characters for readability.
     """
 
-    with open(os.path.join(folder, "transcriptions.txt"), "a") as file:
+    with open(os.path.join(folder, "transcriptions.txt"), "a", encoding='utf-8') as file:
         file.write(f"Original: {original}\nTranslated: {translated}\n\n")
+
 
 
 def play_audio(audio_content=None, file_path=None):
