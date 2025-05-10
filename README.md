@@ -107,7 +107,7 @@ gTranscribeq is a Streamlit-based web application that provides an easy-to-use i
 To run the gTranscribeq web application:
 
 1. Ensure you have installed all requirements: `pip install -r requirements.txt`
-2. Run the Streamlit app: `streamlit run gTranscribeq.py`
+2. Run the Streamlit app: `streamlit run qTranscribeq.py`
 3. Open your web browser and navigate to the URL provided by Streamlit (usually `http://localhost:8501`)
 
 Use the web interface to upload your audio file and receive the transcription quickly and easily.
