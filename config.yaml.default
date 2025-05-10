@@ -1,3 +1,5 @@
 openai:
   api_key:
   # Replace with your actual API key and remove `.default` from name of file
+groq:
+  api_key: "Your-Groq-API-Key"
