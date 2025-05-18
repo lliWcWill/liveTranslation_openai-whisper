@@ -122,7 +122,7 @@ Contributions are welcome. Fork the repository and submit a pull request with yo
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Contact
-For more information, contact me at [willTheNightFox@gmail.com](mailto:willTheNightFox@gmail.com).
+For more information, contact me at [domainq47@gmail.com](mailto:domainq47@gmail.com).
 
 ## Acknowledgments
 Special thanks to the OpenAI team for the GPT-4 model and text-to-speech capabilities, and to Groq for their lightning-fast transcription API.
